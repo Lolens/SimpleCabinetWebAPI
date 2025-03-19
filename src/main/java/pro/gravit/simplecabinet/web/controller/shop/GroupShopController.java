@@ -39,9 +39,6 @@ public class GroupShopController {
     public PageDto<GroupProductDto> searchByData(@PathVariable String data, @PathVariable int pageId ) {
         var page = PageRequest.of(pageId, 10);
         var list = searchsr.findByDisplayName(data, page);
-        if (list.isEmpty()) {
-            throw new EntityNotFoundException("User not found");
-        }
         return new PageDto<>(list.map(dtoService::toGroupProductDto));
     }
 

@@ -37,9 +37,6 @@ public class ItemShopController {
     public PageDto<ItemProductDto> searchByData(@PathVariable String data, @PathVariable int pageId ) {
         var page = PageRequest.of(pageId, 10);
         var list = search.findByDisplayName(data, page);
-        if (list.isEmpty()) {
-            throw new EntityNotFoundException("User not found");
-        }
         return new PageDto<>(list.map(dtoService::toItemProductDto));
     }
 
