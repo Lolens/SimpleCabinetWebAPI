@@ -8,6 +8,7 @@ module simplecabinet {
     requires spring.context.support;
     requires java.net.http;
     requires com.fasterxml.jackson.databind;
+    requires com.fasterxml.jackson.core;
     requires org.slf4j;
     requires spring.tx;
     requires spring.security.crypto;

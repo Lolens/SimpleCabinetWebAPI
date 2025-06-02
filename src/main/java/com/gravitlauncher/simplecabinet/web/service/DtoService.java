@@ -8,12 +8,14 @@ import com.gravitlauncher.simplecabinet.web.dto.shop.GroupProductDto;
 import com.gravitlauncher.simplecabinet.web.dto.shop.ItemDeliveryDto;
 import com.gravitlauncher.simplecabinet.web.dto.shop.ItemProductDto;
 import com.gravitlauncher.simplecabinet.web.dto.shop.ServiceProductDto;
+import com.gravitlauncher.simplecabinet.web.dto.updates.ProfileDto;
 import com.gravitlauncher.simplecabinet.web.dto.user.UserDto;
 import com.gravitlauncher.simplecabinet.web.dto.user.UserGroupDto;
 import com.gravitlauncher.simplecabinet.web.model.shop.GroupProduct;
 import com.gravitlauncher.simplecabinet.web.model.shop.ItemDelivery;
 import com.gravitlauncher.simplecabinet.web.model.shop.ItemProduct;
 import com.gravitlauncher.simplecabinet.web.model.shop.ServiceProduct;
+import com.gravitlauncher.simplecabinet.web.model.updates.Profile;
 import com.gravitlauncher.simplecabinet.web.model.user.User;
 import com.gravitlauncher.simplecabinet.web.model.user.UserAsset;
 import com.gravitlauncher.simplecabinet.web.service.storage.StorageService;
@@ -56,6 +58,15 @@ public class DtoService {
         return new ServiceProductDto(entity.getId(), entity.getPrice(), entity.isStackable(), entity.getCurrency(), entity.getDisplayName(), entity.getDescription(),
                 entity.getPictureUrl() != null ? storageService.getUrl(entity.getPictureUrl()).toString() : null,
                 entity.getLimitations());
+    }
+
+    public ProfileDto toProfileDto(Profile profile) {
+        return new ProfileDto(profile.getId(), profile.getName(), profile.getDescription(),
+                storageService.getUrl(profile.getIconId()).toString(),
+                storageService.getUrl(profile.getPictureId()).toString(),
+                storageService.getUrl(profile.getLargePictureId()).toString(),
+                profile.isLimited(),
+                profile.getTag());
     }
 
     @Transactional
