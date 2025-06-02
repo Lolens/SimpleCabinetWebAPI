@@ -5,7 +5,7 @@ plugins {
     id 'java'
 }
 
-group = 'pro.gravit.simplecabinet'
+group = 'com.gravitlauncher.simplecabinet'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '21'
 targetCompatibility = '21'
