@@ -3,8 +3,6 @@ package com.gravitlauncher.simplecabinet.web.service.updates;
 import com.gravitlauncher.simplecabinet.web.model.updates.Profile;
 import com.gravitlauncher.simplecabinet.web.repository.update.ProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,6 +13,13 @@ import java.util.UUID;
 public class ProfileService {
     @Autowired
     private ProfileRepository repository;
+
+    public Profile create(String name, String description) {
+        Profile profile = new Profile();
+        profile.setName(name);
+        profile.setDescription(description);
+        return save(profile);
+    }
 
     public void updateProfileTag(UUID uuid, String tag) {
         repository.updateProfileTag(uuid, tag);

@@ -43,4 +43,8 @@ public class UpdateProfileService {
     public Optional<UpdateProfile> findByProfileAndTag(Profile profile, String tag) {
         return repository.findByProfileAndTag(profile, tag);
     }
+
+    public Optional<UpdateProfile> findByProfileAndTagWithFetch(Profile profile, String tag) {
+        return repository.findByProfileAndTagWithFetch(profile, tag);
+    }
 }
