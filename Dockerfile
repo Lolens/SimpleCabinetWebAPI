@@ -1,7 +1,7 @@
 FROM azul/zulu-openjdk-debian:24-latest AS build
 WORKDIR /app
 COPY . /app
-RUN chmod +x && ./gradlew assemble --no-daemon
+RUN chmod +x ./gradlew && ./gradlew assemble --no-daemon
 FROM azul/zulu-openjdk-debian:24-latest AS prod
 WORKDIR /app/data
 VOLUME /app/data
