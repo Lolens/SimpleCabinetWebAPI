@@ -632,3 +632,7 @@ CREATE INDEX sessions_user_id_idx ON sessions (user_id);
 ALTER TABLE balance
     ADD CONSTRAINT fksdu7qx7cs4vxvi8rf9bgrwrb4 FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE NO ACTION;
 
+-- changeset gravita:1756441183091-97
+ALTER TABLE public.users
+    ALTER COLUMN uuid TYPE uuid USING uuid::uuid;
+
