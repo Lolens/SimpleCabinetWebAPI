@@ -636,3 +636,5 @@ ALTER TABLE balance
 ALTER TABLE public.users
     ALTER COLUMN uuid TYPE uuid USING uuid::uuid;
 
+-- changeset gravita:1756441183091-98
+CREATE SEQUENCE IF NOT EXISTS prepare_users_seq START WITH 1 INCREMENT BY 1;
