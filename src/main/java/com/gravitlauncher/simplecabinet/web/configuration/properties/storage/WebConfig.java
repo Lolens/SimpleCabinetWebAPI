@@ -1,4 +1,4 @@
-package pro.gravit.simplecabinet.web.configuration.properties.storage;
+package com.gravit.simplecabinet.web.configuration.properties.storage;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -36,3 +36,4 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowCredentials(true);
     }
 }
+
