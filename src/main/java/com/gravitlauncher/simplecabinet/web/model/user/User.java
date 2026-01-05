@@ -20,59 +20,74 @@ public class User implements BasicUser {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_generator")
     @SequenceGenerator(name = "users_generator", sequenceName = "users_seq", allocationSize = 1)
     private long id;
+
     @Setter
     @Getter
     @Column(unique = true)
     private String username;
+
     @Setter
     @Getter
     @Column(unique = true)
     private UUID uuid;
+
     //Password and permissions
     @Setter
     @Getter
     @Column(name = "hash_type")
     @Enumerated(EnumType.ORDINAL)
     private HashType hashType = HashType.BCRYPT;
+
     @Getter
     private String password;
+
     //Special
     @Setter
     @Getter
     @Column(unique = true)
     private String email;
+
     //Addional info (may be null)
     @Setter
     @Getter
     @Enumerated(EnumType.ORDINAL)
     private Gender gender;
+
     @Setter
     @Getter
     private String status;
+
     @Setter
     @Getter
     @Column(name = "registration_date")
     private LocalDateTime registrationDate;
+
     @Setter
     @Getter
     @Column(name = "totp_secret_key")
     private String totpSecretKey;
+
     @Setter
     @Getter
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<UserGroup> groups;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<UserSession> sessions;
+
     @Setter
     @Getter
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<UserAsset> assets;
+
     @Setter
     @Getter
     private String prefix;
+
     @Setter
     @Getter
-    private Long reputation;
+    private Integer reputation;
+
 
     public static boolean isCorrectEmail(String email) //Very simple check
     {
@@ -88,7 +103,7 @@ public class User implements BasicUser {
     }
 
     @Getter
-    public enum HashType {
+    public enum HashType { //for password
         BCRYPT(true),
         DOUBLEMD5(false),
         MD5(false),

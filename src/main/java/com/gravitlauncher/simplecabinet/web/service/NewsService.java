@@ -33,7 +33,7 @@ public class NewsService {
     }
 
     public NewsDto toMiniNewsWithPictureUrl(News entity) {
-        return new NewsDto(entity.getId(), entity.getHeader(), entity.getPicture() != null ? storageService.getUrl(entity.getPicture()).toString() : null, entity.getMiniText(), null,null );
+        return new NewsDto(entity.getId(), entity.getHeader(), entity.getPicture() != null ? storageService.getUrl(entity.getPicture()).toString() : null, entity.getMiniText(), null, null);
     }
 
     public Optional<News> findByIdFetchComments(Long id) {

@@ -403,12 +403,19 @@ CREATE TABLE update_profiles
 -- changeset gravita:1756441183091-47
 CREATE TABLE user_assets
 (
-    id       BIGINT DEFAULT nextval('user_assets_seq') NOT NULL,
-    hash     VARCHAR(255),
-    metadata VARCHAR(255),
-    name     VARCHAR(255),
-    user_id  BIGINT,
-    CONSTRAINT user_assets_pkey PRIMARY KEY (id)
+    id         BIGINT DEFAULT nextval('user_assets_seq') NOT NULL,
+    user_id    BIGINT,
+    type       VARCHAR(31)                               NOT NULL,
+    digest     VARCHAR(64)                               NOT NULL,
+    file_name  VARCHAR(255)                              NOT NULL,
+    file_size  BIGINT                                    NOT NULL,
+    width      INTEGER,
+    height     INTEGER,
+    metadata   TEXT                                      DEFAULT '{}',
+    uploaded_at TIMESTAMP WITHOUT TIME ZONE              NOT NULL,
+    last_accessed TIMESTAMP WITHOUT TIME ZONE,
+    CONSTRAINT user_assets_pkey PRIMARY KEY (id),
+    CONSTRAINT user_assets_digest_unique UNIQUE (digest)
 );
 
 -- changeset gravita:1756441183091-48
@@ -474,16 +481,24 @@ ALTER TABLE users
 ALTER TABLE users
     ADD CONSTRAINT ukr43af9ap4edm43mmtq01oddj6 UNIQUE (username);
 
+-- changeset gravita:1756441183091-55
+ALTER TABLE prepare_users
+    ADD CONSTRAINT prepare_users_username_unique UNIQUE (username);
+
 -- changeset gravita:1756441183091-56
-CREATE UNIQUE INDEX prepare_users_confirm_token_idx ON prepare_users (confirm_token);
+ALTER TABLE prepare_users
+    ADD CONSTRAINT prepare_users_email_unique UNIQUE (email);
 
 -- changeset gravita:1756441183091-57
-CREATE UNIQUE INDEX servers_name_idx ON servers (name);
+CREATE UNIQUE INDEX prepare_users_confirm_token_idx ON prepare_users (confirm_token);
 
 -- changeset gravita:1756441183091-58
-CREATE INDEX sessions_refresh_token_idx ON sessions (refresh_token);
+CREATE UNIQUE INDEX servers_name_idx ON servers (name);
 
 -- changeset gravita:1756441183091-59
+CREATE INDEX sessions_refresh_token_idx ON sessions (refresh_token);
+
+-- changeset gravita:1756441183091-60
 CREATE INDEX sessions_server_id_idx ON sessions (server_id);
 
 -- changeset gravita:1756441183091-61
@@ -585,7 +600,6 @@ ALTER TABLE news_comments
 -- changeset gravita:1756441183091-85
 ALTER TABLE payments
     ADD CONSTRAINT fkj94hgy9v5fw1munb90tar2eje FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE NO ACTION;
-CREATE INDEX payments_user_id_idx ON payments (user_id);
 
 -- changeset gravita:1756441183091-86
 ALTER TABLE audit_log
@@ -626,15 +640,45 @@ ALTER TABLE group_orders
 -- changeset gravita:1756441183091-95
 ALTER TABLE sessions
     ADD CONSTRAINT fkruie73rneumyyd1bgo6qw8vjt FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE NO ACTION;
-CREATE INDEX sessions_user_id_idx ON sessions (user_id);
 
 -- changeset gravita:1756441183091-96
 ALTER TABLE balance
     ADD CONSTRAINT fksdu7qx7cs4vxvi8rf9bgrwrb4 FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE NO ACTION;
 
 -- changeset gravita:1756441183091-97
-ALTER TABLE public.users
-    ALTER COLUMN uuid TYPE uuid USING uuid::uuid;
+ALTER TABLE service_orders
+    ADD CONSTRAINT fk_service_orders_product FOREIGN KEY (product_id) REFERENCES service_products (id) ON DELETE NO ACTION;
 
 -- changeset gravita:1756441183091-98
+CREATE INDEX payments_user_id_idx ON payments (user_id);
+
+-- changeset gravita:1756441183091-99
+CREATE INDEX sessions_user_id_idx ON sessions (user_id);
+
+-- changeset gravita:1756441183091-100
+ALTER TABLE users ALTER COLUMN uuid TYPE uuid USING uuid::uuid;
+
+-- changeset gravita:1756441183091-101
 CREATE SEQUENCE IF NOT EXISTS prepare_users_seq START WITH 1 INCREMENT BY 1;
+
+-- changeset gravita:1756441183091-102
+CREATE INDEX user_assets_user_id_idx ON user_assets (user_id);
+
+-- changeset gravita:1756441183091-103
+CREATE INDEX user_assets_type_idx ON user_assets (type);
+
+-- changeset gravita:1756441183091-104
+ALTER TABLE user_assets
+    ADD CONSTRAINT chk_user_assets_type CHECK (type IN ('SKIN', 'CAPE', 'AVATAR'));
+
+-- changeset gravita:1756441183091-105
+ALTER TABLE prepare_users
+    ALTER COLUMN id SET DEFAULT nextval('prepare_users_seq');
+
+-- changeset gravita:1756441183091-106
+ALTER TABLE prepare_users
+    ADD CONSTRAINT uk_prepare_users_username UNIQUE (username);
+
+-- changeset gravita:1756441183091-107
+ALTER TABLE prepare_users
+    ADD CONSTRAINT uk_prepare_users_email UNIQUE (email);

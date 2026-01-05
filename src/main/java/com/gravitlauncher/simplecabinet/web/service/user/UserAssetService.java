@@ -46,7 +46,7 @@ public class UserAssetService {
     }
 
     public Optional<UserAsset> findByUserAndName(User user, String name) {
-        return userAssetRepository.findByUserAndName(user, name);
+        return userAssetRepository.findByUserAndFileName(user, name);
     }
 
     public void deleteById(Long aLong) {
@@ -56,11 +56,6 @@ public class UserAssetService {
     public void delete(UserAsset entity) {
         userAssetRepository.delete(entity);
     }
-
-    public String makeAssetUrl(UserAsset userAsset) {
-        return storageService.getUrl(userAsset.getHash()).toString();
-    }
-
 
     private MessageDigest makeMessageDigest() {
         try {

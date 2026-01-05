@@ -7,7 +7,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import com.gravitlauncher.simplecabinet.web.exception.InvalidParametersException;
-import com.gravitlauncher.simplecabinet.web.model.user.*;
 import com.gravitlauncher.simplecabinet.web.repository.user.UserRepository;
 import com.gravitlauncher.simplecabinet.web.repository.user.UserSessionRepository;
 import com.gravitlauncher.simplecabinet.web.utils.SecurityUtils;

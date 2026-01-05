@@ -10,12 +10,14 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.GetUrlRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.*;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @Priority(value = 0)
@@ -72,4 +74,50 @@ public class S3StorageService implements StorageService {
                 .key(name)
                 .build());
     }
+
+    @Override
+    public Optional<byte[]> get(String name) {
+        GetObjectRequest getRequest = GetObjectRequest.builder()
+                .bucket(config.getBucket())
+                .key(name)
+                .build();
+
+        try (InputStream is = client.getObject(getRequest)) {
+            return Optional.of(is.readAllBytes());
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public boolean delete(String name) {
+        DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+                .bucket(config.getBucket())
+                .key(name)
+                .build();
+        client.deleteObject(deleteRequest);
+        return true;
+    }
+
+    @Override
+    public boolean exists(String name) {
+        HeadObjectRequest headRequest = HeadObjectRequest.builder()
+                .bucket(config.getBucket())
+                .key(name)
+                .build();
+        try {
+            client.headObject(headRequest);
+            return true;
+        } catch (software.amazon.awssdk.services.s3.model.S3Exception e) {
+            if (e.statusCode() == 404) return false;
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public List<String> listAllFiles() throws StorageException {
+        throw new RuntimeException("Not implemented");
+    }
+
 }
