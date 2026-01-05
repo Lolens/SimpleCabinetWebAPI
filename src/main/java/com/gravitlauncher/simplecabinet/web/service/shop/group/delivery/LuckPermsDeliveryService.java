@@ -137,9 +137,7 @@ public class LuckPermsDeliveryService implements GroupDeliveryService {
                     }
             )
     )
-    @Entity
-    public class LuckPermsDummyEntity {
-        @Id
-        private Long id;
+
+    public final class LuckPermsSqlMappings {
     }
 }
