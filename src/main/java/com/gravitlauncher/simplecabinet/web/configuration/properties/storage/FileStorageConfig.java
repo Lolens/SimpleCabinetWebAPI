@@ -11,11 +11,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Getter
 @Setter
 @Configuration
-@ConfigurationProperties(prefix = "storage")
+@ConfigurationProperties(prefix = "storage.file")
 public class FileStorageConfig implements WebMvcConfigurer {
 
-    private String localPath = "./assets";
-    private String remoteUrl = "http://localhost:8080/assets/";
+    private String localPath;
+    private String remoteUrl;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {

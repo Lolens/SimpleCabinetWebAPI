@@ -39,9 +39,6 @@ public class TextureService {
     private final StorageService storageService;
     private final ObjectMapper objectMapper;
 
-    @Value("${app.base-url:http://localhost:8080}")
-    private String baseUrl;
-
     @Transactional
     public UserAsset uploadTexture(User user, UserAsset.AssetType type,
                                    MultipartFile file, Map<String, String> metadata) {

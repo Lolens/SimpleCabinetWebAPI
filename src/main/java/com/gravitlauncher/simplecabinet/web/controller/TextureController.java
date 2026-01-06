@@ -1,5 +1,6 @@
 package com.gravitlauncher.simplecabinet.web.controller;
 
+import com.gravitlauncher.simplecabinet.web.configuration.properties.storage.FileStorageConfig;
 import com.gravitlauncher.simplecabinet.web.exception.EntityNotFoundException;
 import com.gravitlauncher.simplecabinet.web.exception.InvalidParametersException;
 import com.gravitlauncher.simplecabinet.web.model.user.TextureFileInfoDto;
@@ -28,6 +29,7 @@ public class TextureController {
     private final TextureService textureService;
     private final UserService userService;
     private final DtoService dtoService;
+    private final FileStorageConfig storageConfig;
 
     @GetMapping("/{username}")
     public TextureResponseDto getTextures(@PathVariable String username) {
@@ -141,7 +143,7 @@ public class TextureController {
         return new UploadTextureResponseDto(
                 asset.getId(),
                 asset.getType().name().toLowerCase(),
-                asset.getUrl(),
+                storageConfig.getRemoteUrl() + asset.getUrl(),
                 asset.getDigest(),
                 asset.getWidth(),
                 asset.getHeight(),
@@ -221,14 +223,37 @@ public class TextureController {
         }
 
         // Getters
-        public Long getId() { return id; }
-        public String getType() { return type; }
-        public String getUrl() { return url; }
-        public String getDigest() { return digest; }
-        public Integer getWidth() { return width; }
-        public Integer getHeight() { return height; }
-        public Long getFileSize() { return fileSize; }
-        public Object getMetadata() { return metadata; }
+        public Long getId() {
+            return id;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+
+        public String getDigest() {
+            return digest;
+        }
+
+        public Integer getWidth() {
+            return width;
+        }
+
+        public Integer getHeight() {
+            return height;
+        }
+
+        public Long getFileSize() {
+            return fileSize;
+        }
+
+        public Object getMetadata() {
+            return metadata;
+        }
     }
 
     public static class CheckTextureResponseDto {

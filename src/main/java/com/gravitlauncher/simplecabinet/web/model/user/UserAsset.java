@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 @Entity(name = "UserAsset")
 @Table(name = "user_assets", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"user_id", "type"})  // У пользователя может быть только одна текстура каждого типа
+        @UniqueConstraint(columnNames = {"user_id", "type"})
 })
 public class UserAsset {
 
@@ -95,7 +95,7 @@ public class UserAsset {
         }
 
         public String getUrlPath() {
-            return "/assets/" + folder + "/";
+            return  "/" + folder + "/";
         }
 
         public static AssetType fromString(String name) {

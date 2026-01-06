@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gravitlauncher.simplecabinet.web.configuration.properties.storage.FileStorageConfig;
 import com.gravitlauncher.simplecabinet.web.controller.integration.BanManagerController;
 import com.gravitlauncher.simplecabinet.web.dto.shop.GroupProductDto;
 import com.gravitlauncher.simplecabinet.web.dto.shop.ItemDeliveryDto;
@@ -22,6 +23,7 @@ import com.gravitlauncher.simplecabinet.web.model.user.UserAsset;
 import com.gravitlauncher.simplecabinet.web.service.storage.StorageService;
 import com.gravitlauncher.simplecabinet.web.service.user.UserDetailsService;
 import com.gravitlauncher.simplecabinet.web.service.user.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -33,22 +35,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @Service
 public class DtoService {
-    @Autowired
-    private UserService userService;
 
-    @Autowired
-    private StorageService storageService;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private UserDetailsService userDetailsService;
-
-    @Value("${app.base-url:http://localhost:8080}")
-    private String baseUrl;
+    private final UserService userService;
+    private final StorageService storageService;
+    private final ObjectMapper objectMapper;
+    private final UserDetailsService userDetailsService;
+    private final FileStorageConfig storageConfig;
 
     public GroupProductDto toGroupProductDto(GroupProduct entity) {
         return new GroupProductDto(entity.getId(), entity.getServer(), entity.getPrice(), entity.isStackable(), entity.getCurrency(), entity.getDisplayName(), entity.getDescription(),
@@ -164,7 +159,7 @@ public class DtoService {
             return Map.of();
         }
         try {
-            return objectMapper.convertValue(metadata, new TypeReference<Map<String, String>>() {});
+            return objectMapper.convertValue(metadata, new TypeReference<>() {});
         } catch (IllegalArgumentException e) {
             return Map.of();
         }
@@ -186,21 +181,17 @@ public class DtoService {
     }
 
     public UserDto.UserTexture getUserTexture(UserAsset asset) {
-        return new UserDto.UserTexture(
-                baseUrl + asset.getUrl(),
+        return new UserDto.UserTexture(storageConfig.getRemoteUrl() + asset.getUrl(),
                 asset.getDigest(), // SHA256
                 deserializeMetadata(asset.getMetadata())
         );
     }
 
-    /**
-     * Конвертация UserAsset в DTO для нового API
-     */
     public UserDto.TextureAssetDto toTextureAssetDto(UserAsset asset) {
         return new UserDto.TextureAssetDto(
                 asset.getId(),
                 asset.getType().name().toLowerCase(),
-                baseUrl + asset.getUrl(),
+                storageConfig.getRemoteUrl() + asset.getUrl(),
                 asset.getDigest(),
                 deserializeMetadata(asset.getMetadata()),
                 asset.getWidth(),
@@ -214,7 +205,7 @@ public class DtoService {
         return new TextureDto(
                 asset.getId(),
                 asset.getType().name().toLowerCase(),
-                asset.getUrl(),
+                storageConfig.getRemoteUrl() + asset.getUrl(),
                 asset.getDigest(),
                 deserializeMetadata(asset.getMetadata()),
                 asset.getWidth(),
