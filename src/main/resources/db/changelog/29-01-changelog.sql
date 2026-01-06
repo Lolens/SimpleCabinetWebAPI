@@ -683,6 +683,7 @@ ALTER TABLE prepare_users
 ALTER TABLE prepare_users
     ADD CONSTRAINT uk_prepare_users_email UNIQUE (email);
 
+-- changeset gravita:1756441183091-108
 ALTER TABLE password_resets
     ALTER COLUMN uuid
     TYPE uuid
