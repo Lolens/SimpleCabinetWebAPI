@@ -33,6 +33,8 @@ public class BanManagerController {
     private UUID stringToUUID (String uuid){
         return UUID.fromString(uuid.replaceFirst("(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)", "$1-$2-$3-$4-$5"));
     }
+
+
     public static class UserUUID {
         public final String uuid;
         public final String username;
