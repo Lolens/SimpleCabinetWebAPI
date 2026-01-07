@@ -279,7 +279,7 @@ CREATE TABLE user_assets (
     metadata JSONB,
     uploaded_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     last_accessed TIMESTAMP WITHOUT TIME ZONE,
-    CONSTRAINT user_assets_digest_unique UNIQUE (digest),
+    CONSTRAINT user_assets_digest_unique UNIQUE (user_id, type, digest),
     CONSTRAINT chk_user_assets_type CHECK (type IN ('SKIN', 'CAPE', 'AVATAR'))
 );
 

@@ -39,58 +39,73 @@ public class TextureService {
     private final StorageService storageService;
     private final ObjectMapper objectMapper;
 
+
     @Transactional
     public UserAsset uploadTexture(User user, UserAsset.AssetType type,
                                    MultipartFile file, Map<String, String> metadata) {
-
         try {
+            // 1. Валидация файла
             validateFile(file, type);
             byte[] fileData = file.getBytes();
 
+            // 2. Валидация изображения
             BufferedImage image = ImageIO.read(new ByteArrayInputStream(fileData));
             if (image == null) {
                 throw new InvalidParametersException("Invalid image file", 23);
             }
             validateImageDimensions(image, type);
+
+            // 3. Расчет хэша
             String digest = calculateSHA256(fileData);
+
+            // 4. Получение существующих записей
             Optional<UserAsset> existingUserAsset = userAssetRepository
                     .findByUserAndType(user, type);
-            JsonNode metadataNode = convertMetadataToJsonNode(metadata);
 
+            // 5. Создание/получение объекта asset
             UserAsset asset;
+            boolean isNewAsset = false;
 
             if (existingUserAsset.isPresent()) {
-                // У пользователя уже есть текстура этого типа - обновляем
                 asset = existingUserAsset.get();
+
+                if (asset.getDigest().equals(digest)) {
+                    asset.setMetadata(convertMetadataToJsonNode(metadata));
+                    return userAssetRepository.save(asset);
+                }
 
                 String oldDigest = asset.getDigest();
 
-                if (!oldDigest.equals(digest)) {
-
-                    boolean isOldFileStillUsed = isFileStillUsed(oldDigest, user, type);
-
-                    if (!isOldFileStillUsed) {
-                        deleteFileFromStorage(oldDigest, type);
-                    }
+                long usageCount = userAssetRepository.countByDigest(oldDigest) - 1;
+                if (usageCount == 0) {
+                    deleteFileFromStorage(oldDigest, type);
                 }
+
+
             } else {
                 asset = new UserAsset();
                 asset.setUser(user);
                 asset.setType(type);
+                isNewAsset = true;
             }
+
+            String storagePath = type.getFolder() + "/" + digest + ".png";
+            try {
+                storageService.put(storagePath, fileData);
+                log.info("Saved new file: {}", storagePath);
+            } catch (StorageService.StorageException e) {
+                log.debug("File already exists in storage: {}", storagePath);
+            }
+
             asset.setDigest(digest);
             asset.setFileName(digest + ".png");
             asset.setFileSize(file.getSize());
             asset.setWidth(image.getWidth());
             asset.setHeight(image.getHeight());
-            asset.setMetadata(metadataNode);
-            asset.setUploadedAt(LocalDateTime.now());
+            asset.setMetadata(convertMetadataToJsonNode(metadata));
 
-            String storagePath = type.getFolder() + "/" + digest + ".png";
-            if (!storageService.exists(storagePath)) {
-                // Сохраняем новый файл
-                storageService.put(storagePath, fileData);
-                log.info("Saved new file: {}", storagePath);
+            if (isNewAsset) {
+                asset.setUploadedAt(LocalDateTime.now());
             }
 
             return userAssetRepository.save(asset);
@@ -98,9 +113,6 @@ public class TextureService {
         } catch (IOException e) {
             log.error("Failed to process texture file", e);
             throw new InvalidParametersException("Failed to process file", 24);
-        } catch (StorageService.StorageException e) {
-            log.error("Storage error", e);
-            throw new RuntimeException("Storage error", e);
         }
     }
 
