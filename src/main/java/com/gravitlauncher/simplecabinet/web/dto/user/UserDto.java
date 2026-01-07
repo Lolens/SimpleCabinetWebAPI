@@ -13,7 +13,7 @@ public record UserDto(
         String status,
         LocalDateTime registrationDate,
         List<UserGroupDto> groups,
-        Map<String, UserTexture> textures,
+        Map<String, UserTexture> assets,
         Map<String, String> permissions
 ) {
 

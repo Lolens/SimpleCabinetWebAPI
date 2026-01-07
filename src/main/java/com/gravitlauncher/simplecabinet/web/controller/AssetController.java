@@ -6,10 +6,11 @@ import com.gravitlauncher.simplecabinet.web.exception.InvalidParametersException
 import com.gravitlauncher.simplecabinet.web.model.user.TextureFileInfoDto;
 import com.gravitlauncher.simplecabinet.web.model.user.User;
 import com.gravitlauncher.simplecabinet.web.model.user.UserAsset;
+import com.gravitlauncher.simplecabinet.web.service.AssetService;
 import com.gravitlauncher.simplecabinet.web.service.DtoService;
-import com.gravitlauncher.simplecabinet.web.service.DtoService.TextureDto;
-import com.gravitlauncher.simplecabinet.web.service.TextureService;
+import com.gravitlauncher.simplecabinet.web.service.DtoService.AssetDto;
 import com.gravitlauncher.simplecabinet.web.service.user.UserService;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,21 +19,20 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/textures")
-public class TextureController {
+@RequestMapping("/assets")
+public class AssetController {
 
-    private final TextureService textureService;
+    private final AssetService assetService;
     private final UserService userService;
     private final DtoService dtoService;
     private final FileStorageConfig storageConfig;
 
     @GetMapping("/{username}")
-    public TextureResponseDto getTextures(@PathVariable String username) {
+    public AssetResponseDto getAssets(@PathVariable String username) {
         if (username == null || username.trim().isEmpty()) {
             throw new InvalidParametersException("Username cannot be empty", 400);
         }
@@ -40,11 +40,11 @@ public class TextureController {
         User user = userService.findByUsername(username.trim())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        return textureService.getTexturesForLauncher(user);
+        return assetService.getAssetsForLauncher(user);
     }
 
     @GetMapping("/uuid/{uuid}")
-    public TextureResponseDto getTexturesByUuid(@PathVariable String uuid) {
+    public AssetResponseDto getAssetsByUuid(@PathVariable String uuid) {
         if (uuid == null || uuid.trim().isEmpty()) {
             throw new InvalidParametersException("UUID cannot be empty", 400);
         }
@@ -54,7 +54,7 @@ public class TextureController {
             User user = userService.findByUUID(userUuid)
                     .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-            return textureService.getTexturesForLauncher(user);
+            return assetService.getAssetsForLauncher(user);
         } catch (IllegalArgumentException e) {
             throw new InvalidParametersException("Invalid UUID format", 400);
         }
@@ -62,16 +62,16 @@ public class TextureController {
 
     @GetMapping("/info/{digest}")
     public TextureFileInfoDto getFileInfo(@PathVariable String digest) {
-        return textureService.getFileUsageInfo(digest);
+        return assetService.getFileUsageInfo(digest);
     }
 
     @GetMapping("/file/{digest}")
-    public ResponseEntity<byte[]> getTextureFile(@PathVariable String digest) {
+    public ResponseEntity<byte[]> getAssetFile(@PathVariable String digest) {
         if (digest == null || digest.trim().isEmpty()) {
             throw new InvalidParametersException("Digest cannot be empty", 400);
         }
 
-        byte[] fileData = textureService.getTextureFile(digest.trim())
+        byte[] fileData = assetService.getTextureFile(digest.trim())
                 .orElseThrow(() -> new EntityNotFoundException("Texture file not found"));
 
         return ResponseEntity.ok()
@@ -80,10 +80,8 @@ public class TextureController {
                 .body(fileData);
     }
 
-    // --- Для веб-интерфейса и API ---
-
     @GetMapping("/user/{userId}")
-    public List<TextureDto> getUserTextures(@PathVariable String userId) {
+    public List<AssetDto> getUserAssets(@PathVariable String userId) {
         if (userId == null || userId.trim().isEmpty()) {
             throw new InvalidParametersException("User ID cannot be empty", 400);
         }
@@ -93,7 +91,7 @@ public class TextureController {
             User user = userService.findById(id)
                     .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-            return textureService.getUserTextures(user).stream()
+            return assetService.getUserAssets(user).stream()
                     .map(dtoService::toTextureDto)
                     .toList();
         } catch (NumberFormatException e) {
@@ -103,16 +101,16 @@ public class TextureController {
 
     @GetMapping("/my")
     @PreAuthorize("isAuthenticated()")
-    public List<TextureDto> getMyTextures() {
+    public List<AssetDto> getMyAssets() {
         User user = userService.getCurrentUser().getReference();
-        return textureService.getUserTextures(user).stream()
+        return assetService.getUserAssets(user).stream()
                 .map(dtoService::toTextureDto)
                 .toList();
     }
 
     @PostMapping("/upload")
     @PreAuthorize("isAuthenticated()")
-    public UploadTextureResponseDto uploadTexture(
+    public UploadAssetResponseDto uploadTexture(
             @RequestParam String type,
             @RequestParam MultipartFile file,
             @RequestParam(required = false, defaultValue = "false") boolean slim) {
@@ -132,7 +130,7 @@ public class TextureController {
             throw new InvalidParametersException("Invalid texture type. Use: skin, cape", 400);
         }
 
-        UserAsset asset = textureService.uploadTexture(
+        UserAsset asset = assetService.uploadTexture(
                 user,
                 assetType,
                 file,
@@ -140,7 +138,7 @@ public class TextureController {
                         java.util.Map.of("model", "slim") : java.util.Map.of()
         );
 
-        return new UploadTextureResponseDto(
+        return new UploadAssetResponseDto(
                 asset.getId(),
                 asset.getType().name().toLowerCase(),
                 storageConfig.getRemoteUrl() + asset.getUrl(),
@@ -167,110 +165,34 @@ public class TextureController {
             throw new InvalidParametersException("Invalid texture type", 400);
         }
 
-        textureService.deleteTexture(user, assetType);
+        assetService.deleteTexture(user, assetType);
     }
 
     @GetMapping("/check/{digest}")
-    public CheckTextureResponseDto checkTexture(@PathVariable String digest) {
+    public CheckAssetResponseDto checkAsset(@PathVariable String digest) {
         if (digest == null || digest.trim().isEmpty()) {
             throw new InvalidParametersException("Digest cannot be empty", 400);
         }
 
-        boolean exists = textureService.getTextureFile(digest.trim()).isPresent();
-        return new CheckTextureResponseDto(exists, digest.trim());
+        boolean exists = assetService.getTextureFile(digest.trim()).isPresent();
+        return new CheckAssetResponseDto(exists, digest.trim());
     }
 
     // --- Вспомогательные DTO классы ---
 
-    public static class TextureResponseDto {
-        private final TextureDto skin;
-        private final TextureDto cape;
 
-        public TextureResponseDto(TextureDto skin, TextureDto cape) {
-            this.skin = skin;
-            this.cape = cape;
-        }
-
-        public TextureDto getSkin() {
-            return skin;
-        }
-
-        public TextureDto getCape() {
-            return cape;
-        }
+    public record AssetResponseDto(DtoService.AssetDto skin, DtoService.AssetDto cape) {
     }
 
-    public static class UploadTextureResponseDto {
-        private final Long id;
-        private final String type;
-        private final String url;
-        private final String digest;
-        private final Integer width;
-        private final Integer height;
-        private final Long fileSize;
-        private final Object metadata;
 
-        public UploadTextureResponseDto(Long id, String type, String url, String digest,
-                                        Integer width, Integer height, Long fileSize, Object metadata) {
-            this.id = id;
-            this.type = type;
-            this.url = url;
-            this.digest = digest;
-            this.width = width;
-            this.height = height;
-            this.fileSize = fileSize;
-            this.metadata = metadata;
-        }
 
-        // Getters
-        public Long getId() {
-            return id;
-        }
+    public record UploadAssetResponseDto(Long id, String type, String url, String digest, Integer width,
+                                         Integer height, Long fileSize, Object metadata) {
 
-        public String getType() {
-            return type;
-        }
-
-        public String getUrl() {
-            return url;
-        }
-
-        public String getDigest() {
-            return digest;
-        }
-
-        public Integer getWidth() {
-            return width;
-        }
-
-        public Integer getHeight() {
-            return height;
-        }
-
-        public Long getFileSize() {
-            return fileSize;
-        }
-
-        public Object getMetadata() {
-            return metadata;
-        }
     }
 
-    public static class CheckTextureResponseDto {
-        private final boolean exists;
-        private final String digest;
 
-        public CheckTextureResponseDto(boolean exists, String digest) {
-            this.exists = exists;
-            this.digest = digest;
-        }
+        public record CheckAssetResponseDto(boolean exists, String digest) {
 
-        public boolean isExists() {
-            return exists;
-        }
-
-        public String getDigest() {
-            return digest;
-        }
     }
 }

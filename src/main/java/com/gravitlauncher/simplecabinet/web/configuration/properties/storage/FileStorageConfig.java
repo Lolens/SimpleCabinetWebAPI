@@ -19,14 +19,14 @@ public class FileStorageConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/assets/**")
+        registry.addResourceHandler("/static/**")
                 .addResourceLocations("file:" + localPath + "/")
                 .setCachePeriod(86400);
     }
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/assets/**")
+        registry.addMapping("/static/**")
                 .allowedOrigins("*")
                 .allowedMethods("GET")
                 .maxAge(86400);

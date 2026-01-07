@@ -24,8 +24,6 @@ import com.gravitlauncher.simplecabinet.web.service.storage.StorageService;
 import com.gravitlauncher.simplecabinet.web.service.user.UserDetailsService;
 import com.gravitlauncher.simplecabinet.web.service.user.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,7 +85,7 @@ public class DtoService {
                 user.getStatus(),
                 user.getRegistrationDate(),
                 groups,
-                getUserTextures(user),
+                getUserAssets(user),
                 null // Для публичного DTO разрешений нет
         );
     }
@@ -117,7 +115,7 @@ public class DtoService {
                 user.getStatus(),
                 user.getRegistrationDate(),
                 groupsDto,
-                getUserTextures(user),
+                getUserAssets(user),
                 permissions // Разрешения из UserDetailsService
         );
     }
@@ -134,7 +132,7 @@ public class DtoService {
                 user.getStatus(),
                 user.getRegistrationDate(),
                 null,
-                getUserTextures(user),
+                getUserAssets(user),
                 null
         );
     }
@@ -165,19 +163,19 @@ public class DtoService {
         }
     }
 
-    public Map<String, UserDto.UserTexture> getUserTextures(User user) {
-        Map<String, UserDto.UserTexture> textures = new HashMap<>();
+    public Map<String, UserDto.UserTexture> getUserAssets(User user) {
+        Map<String, UserDto.UserTexture> assets = new HashMap<>();
 
         if (user.getAssets() != null) {
             for (UserAsset asset : user.getAssets()) {
-                textures.put(
+                assets.put(
                         asset.getType().name().toLowerCase(),
                         getUserTexture(asset)
                 );
             }
         }
 
-        return textures;
+        return assets;
     }
 
     public UserDto.UserTexture getUserTexture(UserAsset asset) {
@@ -201,8 +199,8 @@ public class DtoService {
         );
     }
 
-    public TextureDto toTextureDto(UserAsset asset) {
-        return new TextureDto(
+    public AssetDto toTextureDto(UserAsset asset) {
+        return new AssetDto(
                 asset.getId(),
                 asset.getType().name().toLowerCase(),
                 storageConfig.getRemoteUrl() + asset.getUrl(),
@@ -215,7 +213,7 @@ public class DtoService {
         );
     }
 
-    public record TextureDto(
+    public record AssetDto(
             Long id,
             String type,
             String url,
@@ -226,9 +224,9 @@ public class DtoService {
             Long fileSize,
             LocalDateTime uploadedAt
     ) {
-        public TextureDto(Long id, String type, String url, String digest,
-                          Map<String, String> metadata, Integer width,
-                          Integer height, Long fileSize, LocalDateTime uploadedAt) {
+        public AssetDto(Long id, String type, String url, String digest,
+                        Map<String, String> metadata, Integer width,
+                        Integer height, Long fileSize, LocalDateTime uploadedAt) {
             this.id = id;
             this.type = type;
             this.url = url;

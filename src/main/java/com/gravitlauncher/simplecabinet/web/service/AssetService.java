@@ -1,10 +1,8 @@
-// ФАЙЛ: A:\Modding\Server\SCBackend\src\main\java\com\gravitlauncher\simplecabinet\web\service\TextureService.java
-
 package com.gravitlauncher.simplecabinet.web.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gravitlauncher.simplecabinet.web.controller.TextureController;
+import com.gravitlauncher.simplecabinet.web.controller.AssetController;
 import com.gravitlauncher.simplecabinet.web.exception.InvalidParametersException;
 import com.gravitlauncher.simplecabinet.web.model.user.TextureFileInfoDto;
 import com.gravitlauncher.simplecabinet.web.model.user.User;
@@ -13,8 +11,6 @@ import com.gravitlauncher.simplecabinet.web.repository.user.UserAssetRepository;
 import com.gravitlauncher.simplecabinet.web.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,12 +23,11 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TextureService {
+public class AssetService {
 
     private final DtoService dtoService;
     private final UserAssetRepository userAssetRepository;
@@ -326,11 +321,11 @@ public class TextureService {
         return objectMapper.valueToTree(metadata);
     }
 
-    public TextureController.TextureResponseDto getTexturesForLauncher(User user) {
+    public AssetController.AssetResponseDto getAssetsForLauncher(User user) {
         Optional<UserAsset> skinAsset = userAssetRepository.findByUserAndType(user, UserAsset.AssetType.SKIN);
         Optional<UserAsset> capeAsset = userAssetRepository.findByUserAndType(user, UserAsset.AssetType.CAPE);
 
-        return new TextureController.TextureResponseDto(
+        return new AssetController.AssetResponseDto(
                 skinAsset.map(dtoService::toTextureDto).orElse(null),
                 capeAsset.map(dtoService::toTextureDto).orElse(null)
         );
@@ -351,7 +346,7 @@ public class TextureService {
         }
     }
 
-    public List<UserAsset> getUserTextures(User user) {
+    public List<UserAsset> getUserAssets(User user) {
         return userAssetRepository.findByUser(user);
     }
 }
