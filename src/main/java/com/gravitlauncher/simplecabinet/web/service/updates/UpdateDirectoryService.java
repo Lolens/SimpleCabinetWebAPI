@@ -1,6 +1,7 @@
 package com.gravitlauncher.simplecabinet.web.service.updates;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.gravitlauncher.simplecabinet.web.model.updates.Profile;
 import com.gravitlauncher.simplecabinet.web.model.updates.UpdateDirectory;
 import com.gravitlauncher.simplecabinet.web.repository.update.UpdateDirectoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,14 @@ public class UpdateDirectoryService {
         UpdateDirectory directory = new UpdateDirectory();
         directory.setContent(node);
         return save(directory);
+    }
+
+    public Optional<UpdateDirectory> findAssetsByProfile(Profile profile) {
+        return repository.findAssetsByProfile(profile);
+    }
+
+    public Optional<UpdateDirectory> findClientByProfile(Profile profile) {
+        return repository.findClientByProfile(profile);
     }
 
     public UpdateDirectory getReferenceById(Long aLong) {

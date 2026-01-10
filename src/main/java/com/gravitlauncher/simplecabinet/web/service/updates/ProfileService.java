@@ -1,6 +1,7 @@
 package com.gravitlauncher.simplecabinet.web.service.updates;
 
 import com.gravitlauncher.simplecabinet.web.model.updates.Profile;
+import com.gravitlauncher.simplecabinet.web.model.updates.UpdateProfile;
 import com.gravitlauncher.simplecabinet.web.repository.update.ProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,10 @@ public class ProfileService {
 
     public List<Profile> findAll() {
         return repository.findAll();
+    }
+
+    public List<UpdateProfile> findAllWithUpdateProfile() {
+        return repository.findAllWithUpdateProfile();
     }
 
     public <S extends Profile> S save(S entity) {
