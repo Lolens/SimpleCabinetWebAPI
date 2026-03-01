@@ -17,13 +17,18 @@ import java.util.Optional;
 public class LauncherArtifactService {
     private LauncherArtifactRepository repository;
     private KeyManagementService keyManagementService;
+    private JwtParser parserPrepared;
     private JwtParser parser;
 
     public LauncherArtifactService(LauncherArtifactRepository repository, KeyManagementService keyManagementService) {
         this.repository = repository;
         this.keyManagementService = keyManagementService;
-        this.parser = Jwts.parser()
+        this.parserPrepared = Jwts.parser()
                 .requireIssuer("SimpleCabinet.LauncherArtifact")
+                .verifyWith(keyManagementService.getPublicKey())
+                .build();
+        this.parser = Jwts.parser()
+                .requireIssuer("SimpleCabinet.LauncherArtifactVerified")
                 .verifyWith(keyManagementService.getPublicKey())
                 .build();
     }
@@ -39,9 +44,25 @@ public class LauncherArtifactService {
                 .signWith(keyManagementService.getPrivateKey(), Jwts.SIG.ES256).compact();
     }
 
-    public String verifyJwtTokemForUpdate(String token) {
-        var payload = parser.parseSignedClaims(token).getPayload();
+    @SneakyThrows
+    public String makeJwtTokenForverify(String variant) {
+        LocalDateTime dateTime = LocalDateTime.now().plusMinutes(5);
+        return Jwts.builder()
+                .subject("UnknownUser")
+                .issuer("SimpleCabinet.LauncherArtifactVerified")
+                .claim("variant", variant)
+                .expiration(Date.from(dateTime.toInstant(ZoneOffset.UTC)))
+                .signWith(keyManagementService.getPrivateKey(), Jwts.SIG.ES256).compact();
+    }
+
+    public String verifyJwtTokenForUpdate(String token) {
+        var payload = parserPrepared.parseSignedClaims(token).getPayload();
         return payload.get("data", String.class);
+    }
+
+    public String verifyJwtTokenForVerify(String token) {
+        var payload = parser.parseSignedClaims(token).getPayload();
+        return payload.get("variant", String.class);
     }
 
     public Optional<LauncherArtifact> findByPublicKey(byte[] publicKey) {

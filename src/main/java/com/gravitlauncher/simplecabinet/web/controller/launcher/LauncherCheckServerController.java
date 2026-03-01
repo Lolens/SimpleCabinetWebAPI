@@ -33,6 +33,9 @@ public class LauncherCheckServerController {
     @PostMapping("/joinserver/username")
     public ServerCheckController.JoinServerResponse joinServerByUsername(@RequestBody JoinServerPublicRequest request) {
         var details = jwtProvider.getDetailsFromToken(request.accessToken);
+        if (details.getClient() == null || !details.getClient().startsWith("LAUNCHER:")) {
+            return new ServerCheckController.JoinServerResponse(false);
+        }
         if (!details.getUsername().equals(request.username)) {
             return new ServerCheckController.JoinServerResponse(false);
         }
@@ -49,6 +52,9 @@ public class LauncherCheckServerController {
     @PostMapping("/joinserver/uuid")
     public ServerCheckController.JoinServerResponse joinServerByUuid(@RequestBody JoinServerPublicUuidRequest request) {
         var details = jwtProvider.getDetailsFromToken(request.accessToken);
+        if (details.getClient() == null || !details.getClient().startsWith("LAUNCHER:")) {
+            return new ServerCheckController.JoinServerResponse(false);
+        }
         var sessionOptional = sessionService.findById(details.getSessionId());
         if (sessionOptional.isEmpty()) {
             throw new InvalidParametersException("Session not found", 5);

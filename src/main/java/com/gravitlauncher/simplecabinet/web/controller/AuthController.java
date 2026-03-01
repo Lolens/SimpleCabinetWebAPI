@@ -103,6 +103,9 @@ public class AuthController {
             throw new AuthException("Invalid refreshToken", 8);
         }
         var session = sessionOptional.get();
+        if (session.getClient() == null || !session.getClient().equals("Basic")) {
+            throw new AuthException(String.format("This token make for '%s' but you authorize with 'Basic'", session.getClient()));
+        }
         var token = jwtProvider.generateToken(session);
         return new AuthResponse(token.token(), session.getRefreshToken(), token.getExpire());
     }

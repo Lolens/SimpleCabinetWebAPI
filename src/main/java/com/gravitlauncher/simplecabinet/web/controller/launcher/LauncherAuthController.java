@@ -6,6 +6,7 @@ import com.gravitlauncher.simplecabinet.web.exception.AuthException;
 import com.gravitlauncher.simplecabinet.web.exception.EntityNotFoundException;
 import com.gravitlauncher.simplecabinet.web.service.BanService;
 import com.gravitlauncher.simplecabinet.web.service.DtoService;
+import com.gravitlauncher.simplecabinet.web.service.updates.LauncherArtifactService;
 import com.gravitlauncher.simplecabinet.web.service.user.PasswordCheckService;
 import com.gravitlauncher.simplecabinet.web.service.user.SessionService;
 import com.gravitlauncher.simplecabinet.web.service.user.UserService;
@@ -31,6 +32,8 @@ public class LauncherAuthController {
     private SessionService sessionService;
     @Autowired
     private DtoService dtoService;
+    @Autowired
+    private LauncherArtifactService artifactService;
 
     @PostMapping("/authorize")
     public ResponseEntity<AuthController.AuthResponse> auth(@RequestBody AuthRequest request, HttpServletRequest servletRequest) {
@@ -56,7 +59,12 @@ public class LauncherAuthController {
                 throw new AuthException("2FA Password not correct", 6);
             }
         }
-        var session = sessionService.create(user, "Basic", servletRequest.getRemoteAddr());
+        var launcherVerifyToken = servletRequest.getHeader("X-Launcher-Update-Token");
+        String client = "Basic";
+        if (launcherVerifyToken != null) {
+            client = "LAUNCHER:" + artifactService.verifyJwtTokenForVerify(launcherVerifyToken);
+        }
+        var session = sessionService.create(user, client, servletRequest.getRemoteAddr());
         var token = jwtProvider.generateToken(session);
         HttpCookie cookie = ResponseCookie.from("session", token.token())
                 .path("/")
@@ -68,12 +76,21 @@ public class LauncherAuthController {
     }
 
     @PostMapping("/refresh")
-    public AuthController.AuthResponse refreshToken(@RequestBody RefreshTokenRequest request) {
+    public AuthController.AuthResponse refreshToken(@RequestBody RefreshTokenRequest request, HttpServletRequest servletRequest) {
         var sessionOptional = sessionService.updateRefreshToken(request.refreshToken);
         if (sessionOptional.isEmpty()) {
             throw new AuthException("Invalid refreshToken", 8);
         }
+
+        var launcherVerifyToken = servletRequest.getHeader("X-Launcher-Update-Token");
+        String client = "Basic";
+        if (launcherVerifyToken != null) {
+            client = "LAUNCHER:" + artifactService.verifyJwtTokenForVerify(launcherVerifyToken);
+        }
         var session = sessionOptional.get();
+        if (session.getClient().startsWith("LAUNCHER:") && launcherVerifyToken == null) {
+            throw new AuthException("This token make for Launcher, but X-Update-Verify-Token not provided");
+        }
         var token = jwtProvider.generateToken(session);
         return new AuthController.AuthResponse(token.token(), session.getRefreshToken(), token.getExpire());
     }

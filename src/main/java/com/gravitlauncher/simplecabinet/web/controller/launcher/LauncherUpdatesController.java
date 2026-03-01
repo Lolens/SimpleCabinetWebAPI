@@ -50,7 +50,7 @@ public class LauncherUpdatesController {
         }
         boolean verified;
         try {
-            var data = artifactService.verifyJwtTokemForUpdate(request.jwtToken);
+            var data = artifactService.verifyJwtTokenForUpdate(request.jwtToken);
             KeyFactory fact = KeyFactory.getInstance("EC");
             X509EncodedKeySpec keySpec = new X509EncodedKeySpec(decodedPublicKey);
             ECPublicKey publicKey = (ECPublicKey) fact.generatePublic(keySpec);
@@ -64,20 +64,22 @@ public class LauncherUpdatesController {
         if (!verified) {
             return makeRequiredUpdate(variant);
         }
-        return new LauncherUpdateInfo(null, "1.0.0", false, false);
+        return new LauncherUpdateInfo(null, "1.0.0", false, false,
+                artifactService.makeJwtTokenForverify(variant));
     }
 
     private LauncherUpdateInfo makeRequiredUpdate(String type) {
         var latestUpdate = artifactService.findLatestRelease(type);
         if (latestUpdate.isEmpty()) {
             log.warn("LauncherArtifact with type {} not found", type);
-            return new LauncherUpdateInfo(null, "1.0.0", false, false);
+            return new LauncherUpdateInfo(null, "1.0.0", false, false, null);
         }
         return new LauncherUpdateInfo(
                 storageService.getUrl(latestUpdate.get().getArtifactId()).toString(),
                 "1.0.0",
                 true,
-                true
+                true,
+                null
         );
     }
 
@@ -110,7 +112,7 @@ public class LauncherUpdatesController {
         }
     }
 
-    public record LauncherUpdateInfo(String url, String version, boolean available, boolean required) {
+    public record LauncherUpdateInfo(String url, String version, boolean available, boolean required, String jwtToken) {
     }
 
     public record HttpUpdatesCheck(String signedData, String publicKey, String jwtToken) {
