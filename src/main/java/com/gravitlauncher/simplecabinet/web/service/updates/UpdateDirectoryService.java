@@ -28,6 +28,10 @@ public class UpdateDirectoryService {
         return repository.findClientByProfile(profile);
     }
 
+    public Optional<UpdateDirectory> findLatestByUnconnectedName(String name) {
+        return repository.findLatestByUnconnectedName(name);
+    }
+
     public UpdateDirectory getReferenceById(Long aLong) {
         return repository.getReferenceById(aLong);
     }

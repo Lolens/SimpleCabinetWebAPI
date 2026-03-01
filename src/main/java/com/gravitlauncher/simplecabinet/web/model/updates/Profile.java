@@ -1,6 +1,9 @@
 package com.gravitlauncher.simplecabinet.web.model.updates;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -36,4 +39,7 @@ public class Profile {
     @Getter
     @Setter
     private String tag;
+    @Getter
+    @Setter
+    private boolean deleted;
 }

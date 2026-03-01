@@ -7,6 +7,8 @@ import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.time.LocalDateTime;
+
 @Entity(name = "UpdateDirectory")
 @Table(name = "update_directories")
 public class UpdateDirectory {
@@ -15,6 +17,14 @@ public class UpdateDirectory {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "update_directories_generator")
     @SequenceGenerator(name = "update_directories_generator", sequenceName = "update_directories_seq", allocationSize = 1)
     private long id;
+    @Getter
+    @Setter
+    @Column(name = "update_at")
+    private LocalDateTime updateAt;
+    @Getter
+    @Setter
+    @Column(name = "unconnected_name")
+    private String unconnectedName;
     @Getter
     @Setter
     @Column(columnDefinition = "jsonb")

@@ -34,7 +34,25 @@ public class LauncherProfilesController {
         return new HttpListProfilesResponse(profiles.stream().map(UpdateProfile::getContent).collect(Collectors.toList()));
     }
 
-    @GetMapping("/{uuid}/dir/{name}")
+    @GetMapping("/by/uuid/{uuid}")
+    public JsonNode getProfileByUuid(@PathVariable UUID uuid) {
+        var profile = updateProfileService.findByProfileUuid(uuid);
+        if (profile.isEmpty()) {
+            throw new EntityNotFoundException("Profile not found");
+        }
+        return profile.get().getContent();
+    }
+
+    @GetMapping("/by/name/{name}")
+    public JsonNode getProfileByName(@PathVariable String name) {
+        var profile = updateProfileService.findByProfileName(name);
+        if (profile.isEmpty()) {
+            throw new EntityNotFoundException("Profile not found");
+        }
+        return profile.get().getContent();
+    }
+
+    @GetMapping("/by/uuid/{uuid}/dir/{name}")
     public HttpUpdateInfo getUpdateDir(@PathVariable UUID uuid, @PathVariable String name) {
         Optional<UpdateDirectory> directory;
         if (name.equals("assets")) {
@@ -46,6 +64,15 @@ public class LauncherProfilesController {
             throw new EntityNotFoundException("Directory not found");
         }
         return new HttpUpdateInfo(directory.get().getContent(), "https://example.com");
+    }
+
+    @GetMapping("/unconnected/{name}")
+    public JsonNode getUnconnectedDir(@PathVariable String name) {
+        var profile = updateDirectoryService.findLatestByUnconnectedName(name);
+        if (profile.isEmpty()) {
+            throw new EntityNotFoundException("Profile not found");
+        }
+        return profile.get().getContent();
     }
 
     public record HttpListProfilesResponse(List<JsonNode> profiles) {

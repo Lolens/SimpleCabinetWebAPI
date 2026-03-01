@@ -11,6 +11,9 @@ public interface UpdateDirectoryRepository extends JpaRepository<UpdateDirectory
     @Query("select ud from UpdateDirectory ud, UpdateProfile up, Profile p where ud = up.assets and up.profile = p and up.tag = p.tag and p = :profile")
     Optional<UpdateDirectory> findAssetsByProfile(Profile profile);
 
+    @Query("select ud from UpdateDirectory ud where ud.unconnectedName = ?1 order by ud.updateAt desc limit 1")
+    Optional<UpdateDirectory> findLatestByUnconnectedName(String name);
+
     @Query("select ud from UpdateDirectory ud, UpdateProfile up, Profile p where ud = up.client and up.profile = p and up.tag = p.tag and p = :profile")
     Optional<UpdateDirectory> findClientByProfile(Profile profile);
 }

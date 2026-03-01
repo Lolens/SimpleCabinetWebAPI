@@ -14,6 +14,10 @@ public interface ProfileRepository extends JpaRepository<Profile, UUID> {
     @Query("update Profile p set p.tag = :tag where p.id = :uuid")
     void updateProfileTag(UUID uuid, String tag);
 
-    @Query("select up from UpdateProfile up, Profile p where up.profile = p and up.tag = p.tag")
+    @Query("select up from UpdateProfile up, Profile p where up.profile = p and up.tag = p.tag and p.deleted = false")
     List<UpdateProfile> findAllWithUpdateProfile();
+
+    @Modifying
+    @Query("update Profile p set p.deleted = :value where p.id = :uuid")
+    void updateDeleted(UUID uuid, boolean value);
 }

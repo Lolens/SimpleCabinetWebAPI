@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UpdateProfileService {
@@ -44,8 +45,19 @@ public class UpdateProfileService {
         return repository.findByProfileAndTag(profile, tag);
     }
 
+    public Optional<UpdateProfile> findByProfileUuid(UUID uuid) {
+        return repository.findByProfileUuid(uuid);
+    }
+
+    public Optional<UpdateProfile> findByProfileName(String name) {
+        return repository.findByProfileName(name);
+    }
 
     public Optional<UpdateProfile> findByProfileAndTagWithFetch(Profile profile, String tag) {
         return repository.findByProfileAndTagWithFetch(profile, tag);
+    }
+
+    public void delete(UpdateProfile entity) {
+        repository.delete(entity);
     }
 }

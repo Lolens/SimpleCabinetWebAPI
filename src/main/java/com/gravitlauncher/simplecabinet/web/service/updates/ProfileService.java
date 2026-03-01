@@ -45,4 +45,8 @@ public class ProfileService {
     public Profile getReferenceById(UUID uuid) {
         return repository.getReferenceById(uuid);
     }
+
+    public void delete(Profile entity) {
+        repository.updateDeleted(entity.getId(), true);
+    }
 }
