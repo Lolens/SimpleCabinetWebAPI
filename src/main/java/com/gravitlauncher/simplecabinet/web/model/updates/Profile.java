@@ -13,6 +13,7 @@ import java.util.UUID;
 @Table(name = "profiles")
 public class Profile {
     @Getter
+    @Setter
     @Id
     private UUID id;
     @Getter

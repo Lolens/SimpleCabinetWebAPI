@@ -35,21 +35,25 @@ public class LauncherProfilesController {
     }
 
     @GetMapping("/by/uuid/{uuid}")
-    public JsonNode getProfileByUuid(@PathVariable UUID uuid) {
+    public LauncherProfilesAdminController.HttpCompletedProfile getProfileByUuid(@PathVariable UUID uuid) {
         var profile = updateProfileService.findByProfileUuid(uuid);
         if (profile.isEmpty()) {
             throw new EntityNotFoundException("Profile not found");
         }
-        return profile.get().getContent();
+        UpdateDirectory client = profile.get().getClient();
+        UpdateDirectory asset = profile.get().getAssets();
+        return new LauncherProfilesAdminController.HttpCompletedProfile(profile.get().getContent(), client == null ? null : client.getContent(), asset == null ? null : asset.getContent());
     }
 
     @GetMapping("/by/name/{name}")
-    public JsonNode getProfileByName(@PathVariable String name) {
+    public LauncherProfilesAdminController.HttpCompletedProfile getProfileByName(@PathVariable String name) {
         var profile = updateProfileService.findByProfileName(name);
         if (profile.isEmpty()) {
             throw new EntityNotFoundException("Profile not found");
         }
-        return profile.get().getContent();
+        UpdateDirectory client = profile.get().getClient();
+        UpdateDirectory asset = profile.get().getAssets();
+        return new LauncherProfilesAdminController.HttpCompletedProfile(profile.get().getContent(), client == null ? null : client.getContent(), asset == null ? null : asset.getContent());
     }
 
     @GetMapping("/by/uuid/{uuid}/dir/{name}")

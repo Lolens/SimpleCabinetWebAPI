@@ -5,6 +5,7 @@ import com.gravitlauncher.simplecabinet.web.repository.update.LauncherArtifactRe
 import com.gravitlauncher.simplecabinet.web.service.KeyManagementService;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
+import jakarta.transaction.Transactional;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
@@ -73,6 +74,7 @@ public class LauncherArtifactService {
         return repository.findLatestRelease(variant);
     }
 
+    @Transactional
     public void markAllOldArtifactIsDeprecated(String variant, Long latestReleaseId) {
         repository.markAllOldArtifactIsDeprecated(variant, latestReleaseId);
     }

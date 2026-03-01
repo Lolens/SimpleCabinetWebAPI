@@ -11,7 +11,7 @@ import java.util.UUID;
 public interface UpdateProfileRepository extends JpaRepository<UpdateProfile, Long> {
     Optional<UpdateProfile> findByProfileAndTag(Profile profile, String tag);
 
-    @Query("select p from UpdateProfile p, Profile pp where p.profile = pp and p.id = ?1 and p.tag = pp.tag")
+    @Query("select p from UpdateProfile p, Profile pp where p.profile = pp and pp.id = :uuid and p.tag = pp.tag")
     Optional<UpdateProfile> findByProfileUuid(UUID uuid);
 
     @Query("select p from UpdateProfile p, Profile pp where p.profile = pp and pp.name = ?1 and p.tag = pp.tag")

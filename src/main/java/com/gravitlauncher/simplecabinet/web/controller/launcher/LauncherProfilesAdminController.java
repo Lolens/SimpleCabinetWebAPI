@@ -52,16 +52,17 @@ public class LauncherProfilesAdminController {
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public HttpUncompletedProfile createProfile(@RequestBody HttpCreateProfile request) {
         Profile profile = new Profile();
+        profile.setId(UUID.randomUUID());
         profile.setName(request.name);
         profile.setDescription(request.description);
         profile.setTag(generateNextTag(null));
-        profileService.save(profile);
+        profile = profileService.save(profile);
         UpdateProfile updateProfile = new UpdateProfile();
         updateProfile.setProfile(profile);
         updateProfile.setTag(profile.getTag());
         updateProfile.setContent(request.profile);
         updateProfileService.save(updateProfile);
-        return new HttpUncompletedProfile(request.profile);
+        return new HttpUncompletedProfile(profile.getId(), request.profile);
     }
 
     @PostMapping("/by/uuid/{uuid}/pushupdate")
@@ -75,18 +76,18 @@ public class LauncherProfilesAdminController {
         var profile = oldUpdateProfile.getProfile();
         UpdateDirectory client;
         UpdateDirectory asset;
-        if (request.assets != null) {
+        if (request.assetDir != null) {
             asset = new UpdateDirectory();
-            asset.setContent(request.assets);
+            asset.setContent(request.assetDir);
             asset.setUpdateAt(LocalDateTime.now());
             asset.setUnconnectedName("assets");
             asset = updateDirectoryService.save(asset);
         } else {
             asset = oldUpdateProfile.getAssets();
         }
-        if (request.client != null) {
+        if (request.clientDir != null) {
             client = new UpdateDirectory();
-            client.setContent(request.client);
+            client.setContent(request.clientDir);
             client.setUpdateAt(LocalDateTime.now());
             client = updateDirectoryService.save(client);
         } else {
@@ -100,7 +101,7 @@ public class LauncherProfilesAdminController {
         updateProfile.setContent(request.profile);
         updateProfile = updateProfileService.save(updateProfile);
         profileService.updateProfileTag(profile.getId(), updateProfile.getTag());
-        return new HttpCompletedProfile(request.profile, client.getContent(), asset.getContent());
+        return new HttpCompletedProfile(request.profile, client == null ? null : client.getContent(), asset == null ? null : asset.getContent());
     }
 
 
@@ -129,7 +130,7 @@ public class LauncherProfilesAdminController {
 
     }
 
-    public record HttpUncompletedProfile(JsonNode profile) {
+    public record HttpUncompletedProfile(UUID uuid, JsonNode profile) {
 
     }
 
@@ -137,7 +138,7 @@ public class LauncherProfilesAdminController {
 
     }
 
-    public record HttpPushUpdateProfile(JsonNode profile, JsonNode client, JsonNode assets) {
+    public record HttpPushUpdateProfile(JsonNode profile, JsonNode clientDir, JsonNode assetDir) {
 
     }
 }

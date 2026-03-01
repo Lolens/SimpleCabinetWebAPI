@@ -27,3 +27,12 @@ ALTER TABLE public.launcher_artifacts
 -- changeset gravita:1772355934103-4
 ALTER TABLE public.launcher_artifacts
     ADD artifact_id VARCHAR(255) NULL;
+-- changeset gravita:1772355934103-5
+ALTER TABLE update_profiles
+    DROP CONSTRAINT fk_update_profiles_on_profile;
+ALTER TABLE public.update_profiles
+    ALTER COLUMN profile_id TYPE uuid USING profile_id::uuid::uuid;
+ALTER TABLE public.profiles
+    ALTER COLUMN id TYPE uuid USING id::uuid::uuid;
+ALTER TABLE update_profiles
+    ADD CONSTRAINT fk_update_profiles_on_profile FOREIGN KEY (profile_id) REFERENCES profiles (id) ON DELETE NO ACTION;

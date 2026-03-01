@@ -37,7 +37,7 @@ public class LauncherUpdatesController {
 
     @GetMapping("/prepare")
     public HttpUpdatesPrepare prepare() {
-        var data = SecurityUtils.generateRandomString(16);
+        var data = Base64.getEncoder().encodeToString(SecurityUtils.generateRandomString(16).getBytes(StandardCharsets.UTF_8));
         return new HttpUpdatesPrepare(data, artifactService.makeJwtTokenForUpdate(data));
     }
 
@@ -45,7 +45,12 @@ public class LauncherUpdatesController {
     public LauncherUpdateInfo check(@PathVariable String variant, @RequestBody HttpUpdatesCheck request) {
         byte[] decodedPublicKey = Base64.getDecoder().decode(request.publicKey);
         var launcherArtifact = artifactService.findByPublicKey(decodedPublicKey);
-        if (launcherArtifact.isEmpty() || launcherArtifact.get().isDeprecated()) {
+        if (launcherArtifact.isEmpty()) {
+            log.warn("LauncherArtifact with public key {} not found", request.publicKey);
+            return makeRequiredUpdate(variant);
+        }
+        if (launcherArtifact.get().isDeprecated()) {
+            log.info("LauncherArtifact {} ({}) found, but deprecated", launcherArtifact.get().getId(), launcherArtifact.get().getArtifactType());
             return makeRequiredUpdate(variant);
         }
         boolean verified;
@@ -56,12 +61,14 @@ public class LauncherUpdatesController {
             ECPublicKey publicKey = (ECPublicKey) fact.generatePublic(keySpec);
             Signature sig = Signature.getInstance("SHA256withECDSA");
             sig.initVerify(publicKey);
-            sig.update(data.getBytes(StandardCharsets.UTF_8));
+            sig.update(Base64.getDecoder().decode(data));
             verified = sig.verify(Base64.getDecoder().decode(request.signedData));
         } catch (Throwable e) {
+            log.error("Failed to verify update", e);
             verified = false;
         }
         if (!verified) {
+            log.info("LauncherArtifact {} ({}) found, but signature not valid", launcherArtifact.get().getId(), launcherArtifact.get().getArtifactType());
             return makeRequiredUpdate(variant);
         }
         return new LauncherUpdateInfo(null, "1.0.0", false, false,

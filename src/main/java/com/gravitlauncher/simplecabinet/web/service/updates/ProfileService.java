@@ -3,6 +3,7 @@ package com.gravitlauncher.simplecabinet.web.service.updates;
 import com.gravitlauncher.simplecabinet.web.model.updates.Profile;
 import com.gravitlauncher.simplecabinet.web.model.updates.UpdateProfile;
 import com.gravitlauncher.simplecabinet.web.repository.update.ProfileRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +23,7 @@ public class ProfileService {
         return save(profile);
     }
 
+    @Transactional
     public void updateProfileTag(UUID uuid, String tag) {
         repository.updateProfileTag(uuid, tag);
     }
@@ -46,6 +48,7 @@ public class ProfileService {
         return repository.getReferenceById(uuid);
     }
 
+    @Transactional
     public void delete(Profile entity) {
         repository.updateDeleted(entity.getId(), true);
     }
