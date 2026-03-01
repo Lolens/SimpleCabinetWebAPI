@@ -1,3 +1,5 @@
+-- liquibase formatted sql
+
 -- changeset gravita:1772352082091-1
 ALTER TABLE public.profiles
     ADD deleted bool DEFAULT false NOT NULL;
