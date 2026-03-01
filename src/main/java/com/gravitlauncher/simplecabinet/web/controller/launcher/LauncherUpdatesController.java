@@ -1,19 +1,113 @@
 package com.gravitlauncher.simplecabinet.web.controller.launcher;
 
+import com.gravitlauncher.simplecabinet.web.exception.InvalidParametersException;
+import com.gravitlauncher.simplecabinet.web.model.updates.LauncherArtifact;
+import com.gravitlauncher.simplecabinet.web.service.storage.StorageService;
+import com.gravitlauncher.simplecabinet.web.service.updates.LauncherArtifactService;
+import com.gravitlauncher.simplecabinet.web.service.user.UserAssetService;
 import com.gravitlauncher.simplecabinet.web.utils.SecurityUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
+import java.security.Signature;
+import java.security.interfaces.ECPublicKey;
+import java.security.spec.X509EncodedKeySpec;
+import java.time.LocalDateTime;
+import java.util.Base64;
+
+@Slf4j
 @RestController
 @RequestMapping("/launcher/updates")
 public class LauncherUpdatesController {
+
+
+    @Autowired
+    public UserAssetService userAssetService;
+    @Autowired
+    private LauncherArtifactService artifactService;
+    @Autowired
+    private StorageService storageService;
+
     @GetMapping("/prepare")
     public HttpUpdatesPrepare prepare() {
-        return new HttpUpdatesPrepare(SecurityUtils.generateRandomString(16), "UNUSED_STUB_TOKEN");
+        var data = SecurityUtils.generateRandomString(16);
+        return new HttpUpdatesPrepare(data, artifactService.makeJwtTokenForUpdate(data));
     }
 
-    @PostMapping("/check")
-    public LauncherUpdateInfo check(@RequestBody HttpUpdatesCheck request) {
+    @PostMapping("/check/{variant}")
+    public LauncherUpdateInfo check(@PathVariable String variant, @RequestBody HttpUpdatesCheck request) {
+        byte[] decodedPublicKey = Base64.getDecoder().decode(request.publicKey);
+        var launcherArtifact = artifactService.findByPublicKey(decodedPublicKey);
+        if (launcherArtifact.isEmpty() || launcherArtifact.get().isDeprecated()) {
+            return makeRequiredUpdate(variant);
+        }
+        boolean verified;
+        try {
+            var data = artifactService.verifyJwtTokemForUpdate(request.jwtToken);
+            KeyFactory fact = KeyFactory.getInstance("EC");
+            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(decodedPublicKey);
+            ECPublicKey publicKey = (ECPublicKey) fact.generatePublic(keySpec);
+            Signature sig = Signature.getInstance("SHA256withECDSA");
+            sig.initVerify(publicKey);
+            sig.update(data.getBytes(StandardCharsets.UTF_8));
+            verified = sig.verify(Base64.getDecoder().decode(request.signedData));
+        } catch (Throwable e) {
+            verified = false;
+        }
+        if (!verified) {
+            return makeRequiredUpdate(variant);
+        }
         return new LauncherUpdateInfo(null, "1.0.0", false, false);
+    }
+
+    private LauncherUpdateInfo makeRequiredUpdate(String type) {
+        var latestUpdate = artifactService.findLatestRelease(type);
+        if (latestUpdate.isEmpty()) {
+            log.warn("LauncherArtifact with type {} not found", type);
+            return new LauncherUpdateInfo(null, "1.0.0", false, false);
+        }
+        return new LauncherUpdateInfo(
+                storageService.getUrl(latestUpdate.get().getArtifactId()).toString(),
+                "1.0.0",
+                true,
+                true
+        );
+    }
+
+    @PostMapping("/upload/{variant}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public void uploadUpdate(@PathVariable String variant, @RequestPart("secrets") HttpBuildSecrets secrets, @RequestPart("file") MultipartFile file) {
+        {
+            byte[] bytes;
+            try {
+                bytes = file.getBytes();
+            } catch (IOException e) {
+                throw new InvalidParametersException("File upload failure", 21);
+            }
+            String hash = userAssetService.calculateHash(bytes);
+            URL url;
+            try {
+                url = storageService.put(hash, bytes);
+            } catch (StorageService.StorageException e) {
+                log.error("StorageService.put failed", e);
+                throw new InvalidParametersException("File upload failure", 22);
+            }
+            LauncherArtifact launcherArtifact = new LauncherArtifact();
+            launcherArtifact.setArtifactId(hash);
+            launcherArtifact.setUploadAt(LocalDateTime.now());
+            launcherArtifact.setPublicKey(Base64.getDecoder().decode(secrets.publicKey()));
+            launcherArtifact.setDeprecated(false);
+            launcherArtifact.setArtifactType(variant);
+            launcherArtifact = artifactService.save(launcherArtifact);
+            artifactService.markAllOldArtifactIsDeprecated(variant, launcherArtifact.getId());
+        }
     }
 
     public record LauncherUpdateInfo(String url, String version, boolean available, boolean required) {
@@ -23,5 +117,9 @@ public class LauncherUpdatesController {
     }
 
     public record HttpUpdatesPrepare(String data, String jwtToken) {
+    }
+
+    public record HttpBuildSecrets(String publicKey) {
+
     }
 }
