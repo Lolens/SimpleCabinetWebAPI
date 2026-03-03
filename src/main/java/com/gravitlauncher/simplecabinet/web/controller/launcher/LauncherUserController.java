@@ -48,7 +48,7 @@ public class LauncherUserController {
         static LauncherUser fromDto(UserDto dto) {
             Map<String, LauncherTexture> assets = new HashMap<>();
             for (var e : dto.assets.entrySet()) {
-                assets.put(e.getKey(), LauncherTexture.fromDto(e.getValue()));
+                assets.put(e.getKey().toUpperCase(), LauncherTexture.fromDto(e.getValue()));
             }
             return new LauncherUser(dto.username, dto.uuid, assets, new HashMap<>());
         }
