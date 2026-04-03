@@ -38,7 +38,7 @@ public class LauncherUserController {
     public record LauncherTexture(String url, String digest, Map<String, String> metadata) {
         static LauncherTexture fromDto(UserDto.UserTexture texture) {
             return new LauncherTexture(texture.url,
-                    Base64.getEncoder().encodeToString(HexFormat.of().parseHex(texture.digest)),
+                    Base64.getUrlEncoder().encodeToString(HexFormat.of().parseHex(texture.digest)),
                     texture.metadata);
         }
     }
