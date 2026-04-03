@@ -92,7 +92,7 @@ public class LauncherUpdatesController {
 
     @PostMapping("/upload/{variant}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public void uploadUpdate(@PathVariable String variant, @RequestPart("secrets") HttpBuildSecrets secrets, @RequestPart("file") MultipartFile file) {
+    public LauncherArtifactUploaded uploadUpdate(@PathVariable String variant, @RequestPart("secrets") HttpBuildSecrets secrets, @RequestPart("file") MultipartFile file) {
         {
             byte[] bytes;
             try {
@@ -116,7 +116,12 @@ public class LauncherUpdatesController {
             launcherArtifact.setArtifactType(variant);
             launcherArtifact = artifactService.save(launcherArtifact);
             artifactService.markAllOldArtifactIsDeprecated(variant, launcherArtifact.getId());
+            return new LauncherArtifactUploaded(storageService.getUrl(hash).toString());
         }
+    }
+
+    public record LauncherArtifactUploaded(String url) {
+
     }
 
     public record LauncherUpdateInfo(String url, String version, boolean available, boolean required, String jwtToken) {
