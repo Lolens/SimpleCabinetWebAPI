@@ -83,7 +83,7 @@ public class LauncherCheckServerController {
         }
         var user = LauncherUserController.LauncherUser.fromDto(dtoService.toPublicUserDto(userOptional.get()));
         Map<String, String> properties = new HashMap<>();
-        return new CheckServerResponse(user, Long.toString(sessionOptional.get().getHardwareId().getId()),
+        return new CheckServerResponse(user, sessionOptional.get().getHardwareId() == null ? null : Long.toString(sessionOptional.get().getHardwareId().getId()),
                 Long.toString(sessionOptional.get().getId()),
                 properties);
     }
